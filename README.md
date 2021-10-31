@@ -9,10 +9,8 @@ Files included:
 * Models
   * Generator.py: Defines the Generator model used in the Semi-Supervised Generative Adversarial Network (SGAN).
   * ResNet.py: Defines the ResNet classifier that is used as a supervised classifier and as the Discriminator of the SGAN.
-  * Bravais_model_SGAN.pth: Semi-supervised Bravais Lattice classifier
-  * Bravais_model_supervised.pth: Supervised Bravais Lattice classifier
-  * Space_Group_model_SGAN.pth: Semi-supervised space group classifier
-  * Space_Group_model_supervised.pth: Supervised space group classifier
+  * BravaisModels.pth: Supervised and Semi-supervised Bravais Lattice classifiers
+  * SpaceGroupModels.pth: Supervised and Semi-supervised space group classifiers
 * Notebooks
   * PlotData.ipynb: Loads data from the BravaisLattice_Data.pt and SpaceGroup_Data.pt files as a 2&theta; vs. normalized intensity graph.
   * LoadBravaisLatticeModels.ipynb: Evaluates the accuracy of the supervised and semi-supervised Bravais Lattice models.

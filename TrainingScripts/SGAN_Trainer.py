@@ -66,7 +66,7 @@ def init_models(gpu):
     opt_UD=torch.optim.Adam(discriminator.parameters(), lr=1e-4, eps=1e-4)
     return generator, discriminator, opt_G, opt_SD, opt_UD
 
-def train(gpu, epochs, world_size, batch_size, dset, data_dim=3041):
+def train(gpu, epochs, world_size, batch_size):
     setup_start = datetime.now()
     rank=gpu
     init_process(gpu, world_size)
@@ -120,12 +120,12 @@ def train(gpu, epochs, world_size, batch_size, dset, data_dim=3041):
         if gpu==0:
             discriminator.train()
         for i, (imgs, labels) in enumerate(train_loader):
-            real_imgs = torch.reshape(imgs, (imgs.shape[0], 1, data_dim)).cuda(gpu)
+            real_imgs = imgs.cuda(gpu)
             labels = labels.type(LongTensor).cuda(gpu)
-            unsup_imgs=torch.reshape(unsup_dataset.batch_u(batch_size), (batch_size, 1, data_dim)).cuda(gpu)
+            unsup_imgs=unsup_dataset.batch_u(batch_size).cuda(gpu)
             optimizer_G.zero_grad()
             z = torch.normal(0, 1, (batch_size, 1, 100)).cuda(gpu).half()
-            gen_imgs = generator(z).logits.half()
+            gen_imgs = generator(z).half()
             g = discriminator(gen_imgs, labels=valid, s=False, loss_func=adv_loss)
             g_loss=g.loss
             g_loss.backward()
@@ -159,7 +159,7 @@ def train(gpu, epochs, world_size, batch_size, dset, data_dim=3041):
         if gpu==0:
             s.save(epoch, plot_imgs)
             discriminator.eval()
-            t_data=torch.reshape(test_dataset.data, (test_dataset.data.shape[0], 1,data_dim))
+            t_data=test_dataset.data
             pred=discriminator(t_data, labels=test_dataset.labels.long().cuda(gpu), s=True, loss_func=aux_loss)
             v_acc=torch.mean((torch.flatten(torch.argmax(pred.logits, axis=-1))==test_dataset.labels.cuda(gpu)).half())
             L.log(
@@ -178,11 +178,11 @@ def train(gpu, epochs, world_size, batch_size, dset, data_dim=3041):
             'opt_SD': optimizer_SD.state_dict(),
             'opt_UD': optimizer_UD.state_dict(),
             'acc': v_acc
-            }, r"SavedModels/sg_sgan_net_"+dset+".pt")
+            }, r"SavedModels/sg_sgan_net.pt")
         
-def spawn(epochs, world_size,batch_size,dset='50%', train=train):
+def spawn(epochs, world_size,batch_size, train=train):
     mp.spawn(
-            train, args=(epochs, world_size, batch_size, dset),
+            train, args=(epochs, world_size, batch_size),
             nprocs=world_size, join=True
         )
 

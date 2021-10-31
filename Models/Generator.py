@@ -1,6 +1,5 @@
 from torch import nn
 import torch
-from transformers.modeling_outputs import SequenceClassifierOutput
 
 class Generator(nn.Module):
     def __init__(self, ngf, ngf2):
@@ -37,9 +36,4 @@ class Generator(nn.Module):
         )
     
     def forward(self, noise):
-        logits=self.main(noise)
-        loss=None
-        return SequenceClassifierOutput(
-            loss=loss,
-            logits=logits,
-        )
+        return self.main(noise)

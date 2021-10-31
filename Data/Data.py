@@ -42,9 +42,17 @@ class DiffractionDataset(Dataset):
 
     def _unencode_labels(self, labels):
         return np.asarray([self.mapping[int(i.item())] for i in labels])
-    def compare(self, prediction):
-        prediction=self._unencode_labels(prediction)
+    def compare(self, pred1, pred2=None, heading=[]):
+        pred1=self._unencode_labels(pred1)
         labels=self._unencode_labels(self.labels)
-        print("{: >3}{: >20}{: >20}".format("Index", "True Label", "Prediction"))
-        for i in range(len(prediction)):
-            print("{: >3} {: >20} {: >20}".format(i, labels[i], prediction[i]))
+        if pred2 is not None:
+            pred2=self._unencode_labels(pred2)
+            print("{: >3}{: >20}{: >20}{: >20}".format("Index", "True Label", heading[0], heading[1]))
+            for i in range(len(pred1)):
+                print("{: >3} {: >20} {: >20} {: >20}".format(i, labels[i], pred1[i], pred2[i]))
+        else:            
+            print("{: >3}{: >20}{: >20}".format("Index", "True Label", "Prediction"))
+            for i in range(len(pred1)):
+                print("{: >3} {: >20} {: >20}".format(i, labels[i], pred1[i]))
+            
+    

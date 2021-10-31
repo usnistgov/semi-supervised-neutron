@@ -83,10 +83,10 @@ def train(gpu, epochs, world_size, batch_size):
         for i, (imgs, labels) in enumerate(train_loader):
             if gpu==0:
                 discriminator.train()
-            real_imgs = torch.reshape(imgs, (imgs.shape[0], 1, 3041)).cuda(gpu)
+            imgs = imgs.cuda(gpu)
             labels = labels.long().cuda(gpu)
             optimizer_SD.zero_grad()
-            r_s = discriminator(real_imgs, labels=labels, s=True, loss_func=aux_loss)
+            r_s = discriminator(imgs, labels=labels, s=True, loss_func=aux_loss)
             s_loss=r_s.loss
             s_loss.backward()
             optimizer_SD.step()
@@ -97,7 +97,7 @@ def train(gpu, epochs, world_size, batch_size):
                 % (epoch+1, epochs,i, s_loss.item(), 100 * d_acc))
         if gpu==0:
             discriminator.eval()
-            t_data=torch.reshape(test_dataset.data, (test_dataset.data.shape[0], 1, 3041))#.float()
+            t_data=test_dataset.data.cuda(gpu)
             pred=discriminator(t_data, labels=test_dataset.labels.long().cuda(gpu), s=True, loss_func=aux_loss)
             v_acc=torch.mean((torch.flatten(torch.argmax(pred.logits, axis=-1))==test_dataset.labels.cuda(gpu)).half())
             L.log(
@@ -108,7 +108,7 @@ def train(gpu, epochs, world_size, batch_size):
             torch.cuda.empty_cache()
             torch.save({'model': discriminator.state_dict(),
             'optimizer': optimizer_SD.state_dict()
-            }, 'sg_net.pt')
+            }, 'supervised_net.pt')
 def spawn(epochs, world_size,batch_size, train=train):
     mp.spawn(
             train, args=(epochs, world_size, batch_size),

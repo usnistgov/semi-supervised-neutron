@@ -1,11 +1,31 @@
 #Credit to Haotong Liang (AuroraLHT)
 
+import torch
 import torch.nn as nn
-from torch.nn import MSELoss, CrossEntropyLoss
-from transformers.configuration_utils import PretrainedConfig
-from transformers.modeling_utils import PreTrainedModel
-from transformers.modeling_outputs import SequenceClassifierOutput
+from torch.nn import CrossEntropyLoss
+from collections import OrderedDict
 
+class ModelOutput:
+    def __init__(self, logits, loss=None):
+        self.logits=logits
+        self.loss=loss
+        self.predictions=torch.flatten(torch.argmax(logits, dim=-1))
+    def __str__(self):
+        return str({"loss":self.loss, "predictions":self.predictions, "logits": self.logits})
+    def accuracy(self, labels):
+        assert labels.shape==self.predictions.shape, "Predictions and labels do not have the same shape"
+        accuracy=(torch.sum((self.predictions==labels))/len(self.predictions)).item()
+        return round(accuracy, 4)*100
+    def top_k_preds(self, k):
+        return torch.topk(self.logits, dim=-1, k=5).indices
+    def top_k_acc(self, labels, k):
+        labels=torch.unsqueeze(labels,dim=-1)
+        labels=torch.cat(tuple(labels for _ in range(k)),-1)
+        labels=torch.unsqueeze(labels,dim=1)
+        preds=self.top_k_preds(k)
+        acc=(torch.sum(preds==labels)/len(labels)).item()
+        return round(acc, 4)*100
+        
 class CNN1dlayer(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride, dropout_p=0.1, bias=False, padding=0):
         super().__init__()
@@ -48,7 +68,7 @@ class CNN1dlayerNoAct(nn.Module):
         hidden = hidden.transpose(-2, -1)
         return hidden
 
-class ResnetConfig(PretrainedConfig):
+class ResnetConfig():
     def __init__(
         self,
         input_dim,
@@ -63,8 +83,6 @@ class ResnetConfig(PretrainedConfig):
         first_pool_stride = 1,
         **kargs
     ):
-        super().__init__(**kargs)
-
         self.input_dim = input_dim
         self.output_dim = output_dim
         self.res_dims = res_dims
@@ -77,9 +95,6 @@ class ResnetConfig(PretrainedConfig):
         self.first_pool_stride = first_pool_stride
 
 class Resnet1dBlock(nn.Module):
-    """
-        This block is similar to the BasicBlock in the fastai 2dresnet implementation
-    """
     def __init__(self, in_channels, out_channels, kernel_size, stride, dropout_p=0.05, downsample=False, **kargs):
         super().__init__()
         
@@ -218,13 +233,13 @@ class Resnet(nn.Module):
 
         return hidden
 
-class ResnetPreTrained(PreTrainedModel):
-    config_class = ResnetConfig
-    base_model_prefix = "resnet"
+#class ResnetPreTrained(PreTrainedModel):
+#    config_class = ResnetConfig
+#    base_model_prefix = "resnet"
 
-class ResnetClassifier(ResnetPreTrained):
+class ResnetClassifier(nn.Module):#(ResnetPreTrained):
     def __init__(self, config):
-        super().__init__(config)
+        super().__init__()
         self.resnet = Resnet(config)
         self.avgpool = nn.AdaptiveMaxPool1d(1)
         self.classifier = nn.Linear(config.res_dims[-1], config.output_dim)
@@ -241,7 +256,8 @@ class ResnetClassifier(ResnetPreTrained):
             if s:
                 loss_fct = CrossEntropyLoss()
                 loss = loss_fct(s_logits.view(-1, self.num_labels), labels.view(-1))
-                return SequenceClassifierOutput(logits=s_logits, loss=loss)
+                return ModelOutput(logits=s_logits, loss=loss)
             loss=loss_func(u_logits, labels)
-            return SequenceClassifierOutput(logits=u_logits, loss=loss)
-        return SequenceClassifierOutput(logits=s_logits, loss=None)
+            return ModelOutput(logits=u_logits, loss=loss)
+        return ModelOutput(logits=s_logits, loss=None)
+    
