@@ -68,7 +68,7 @@ class CNN1dlayerNoAct(nn.Module):
         hidden = hidden.transpose(-2, -1)
         return hidden
 
-class ResnetConfig():
+class ResnetConfig:
     def __init__(
         self,
         input_dim,
@@ -233,11 +233,7 @@ class Resnet(nn.Module):
 
         return hidden
 
-#class ResnetPreTrained(PreTrainedModel):
-#    config_class = ResnetConfig
-#    base_model_prefix = "resnet"
-
-class ResnetClassifier(nn.Module):#(ResnetPreTrained):
+class ResnetClassifier(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.resnet = Resnet(config)

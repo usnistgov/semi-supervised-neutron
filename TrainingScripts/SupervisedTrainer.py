@@ -7,7 +7,7 @@ import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 import sys
 sys.path.append("../")
-from Models.Resnet import ResnetClassifier, ResnetConfig
+from Models.ResNet import ResnetClassifier, ResnetConfig
 from Data.Data import DiffractionDataset
 
 class Logger:
