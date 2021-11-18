@@ -34,7 +34,7 @@ class DiffractionDataset(Dataset):
         data=self.data[idx].cpu().numpy().flatten()
         xrange=np.arange(3, data.shape[-1]*0.05+3, 0.05)
         fig = plt.plot(xrange,data)
-        plt.xlabel("2\u03B8")
+        plt.xlabel("2\u03B8\xb0")
         plt.ylabel("Normalized Intensity")
         str_label=self.mapping[int(self.labels[idx].item())]
         plt.title("{}: {}".format(self.categorical,str_label))

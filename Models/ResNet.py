@@ -71,17 +71,16 @@ class CNN1dlayerNoAct(nn.Module):
 class ResnetConfig:
     def __init__(
         self,
-        input_dim,
-        output_dim,
-        res_dims=[64,128,256,512],
-        res_kernel=[3,3,3,3],
-        res_stride=[2,2,2,2],
-        num_blocks=[3,4,6,3],
-        first_kernel_size = 7,
-        first_stride = 2,
-        first_pool_kernel_size = 3,
-        first_pool_stride = 1,
-        **kargs
+        input_dim = 1,
+        output_dim = 14,
+        res_dims=[32, 64, 64, 64],
+        res_kernel=[5, 7, 17, 13],
+        res_stride=[4, 4, 5, 3],
+        num_blocks=[2, 2, 2, 2],
+        first_kernel_size = 13,
+        first_stride = 1,
+        first_pool_kernel_size = 7,
+        first_pool_stride = 7,
     ):
         self.input_dim = input_dim
         self.output_dim = output_dim
@@ -234,8 +233,13 @@ class Resnet(nn.Module):
         return hidden
 
 class ResnetClassifier(nn.Module):
-    def __init__(self, config):
+    def __init__(self, config=None, num_classes=None):
         super().__init__()
+        if config==None:
+            if num_classes is not None:
+                config=ResnetConfig(output_dim=num_classes)
+            else:
+                config=ResnetConfig()
         self.resnet = Resnet(config)
         self.avgpool = nn.AdaptiveMaxPool1d(1)
         self.classifier = nn.Linear(config.res_dims[-1], config.output_dim)
