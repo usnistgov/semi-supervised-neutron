@@ -6,6 +6,7 @@ Files included:
   * SpaceGroup_Data.pt: A binary file that contains 10 random simulated powder diffraction patterns from the testing dataset. Each piece of data is labeled with the correct Space Group.
   * mapping.pt: A binary file that is used to convert categorical labels to text.
   * Data.py: Defines the DiffractionDataset class, a Pytorch Dataset that can use the BravaisLatticeData.pt and the SpaceGroupData.pt files.
+  * ICSD_IDs.txt: A text file containing the ICSD IDs used in this work.
 * Models
   * Generator.py: Defines the Generator model used in the Semi-Supervised Generative Adversarial Network (SGAN).
   * ResNet.py: Defines the ResNet classifier that is used as a supervised classifier and as the Discriminator of the SGAN.
